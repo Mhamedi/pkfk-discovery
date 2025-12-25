@@ -46,7 +46,7 @@ export default function StudioDraftPage() {
 
   const handleValidate = async () => {
     try {
-      const result = await api.post(`/api/v1/studio/drafts/${draftId}/validate`, {});
+      const result = await api.post<{ passed: boolean }>(`/api/v1/studio/drafts/${draftId}/validate`, {});
       alert(`Validation ${result.passed ? "passed" : "failed"}`);
     } catch (err) {
       alert("Validation failed");
@@ -59,7 +59,7 @@ export default function StudioDraftPage() {
     }
 
     try {
-      const adapter = await api.post(`/api/v1/studio/drafts/${draftId}/publish`, {
+      const adapter = await api.post<{ id: string }>(`/api/v1/studio/drafts/${draftId}/publish`, {
         maturity_level: "L2",
       });
       alert("Adapter published successfully!");

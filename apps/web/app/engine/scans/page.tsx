@@ -166,8 +166,8 @@ function ScanModal({
 
   useEffect(() => {
     // Load connections and adapters
-    api.get("/api/v1/connections").then(setConnections).catch(() => {});
-    api.get("/api/v1/adapters").then(setAdapters).catch(() => {});
+    api.get<any[]>("/api/v1/connections").then(setConnections).catch(() => {});
+    api.get<any[]>("/api/v1/adapters").then(setAdapters).catch(() => {});
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -19,7 +19,7 @@ export default function NewStudioPage() {
     setSubmitting(true);
 
     try {
-      const draft = await api.post("/api/v1/studio/drafts", {
+      const draft = await api.post<{ id: string }>("/api/v1/studio/drafts", {
         name: formData.name,
         status: "draft",
       });
