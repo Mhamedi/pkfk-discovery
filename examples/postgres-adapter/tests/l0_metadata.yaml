@@ -1,0 +1,41 @@
+name: L0 Metadata Introspection
+level: L0
+tests:
+  - name: list_tables
+    sql_template: list_tables.sql
+    expected:
+      columns:
+        - table_schema
+        - table_name
+        - table_type
+      min_rows: 1
+  
+  - name: list_columns
+    sql_template: list_columns.sql
+    expected:
+      columns:
+        - table_schema
+        - table_name
+        - column_name
+        - data_type
+      min_rows: 1
+  
+  - name: list_indexes
+    sql_template: list_indexes.sql
+    expected:
+      columns:
+        - schemaname
+        - tablename
+        - indexname
+      min_rows: 0
+  
+  - name: list_constraints
+    sql_template: list_constraints.sql
+    expected:
+      columns:
+        - table_schema
+        - table_name
+        - constraint_name
+        - constraint_type
+      min_rows: 0
+

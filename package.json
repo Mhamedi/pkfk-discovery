@@ -1,0 +1,26 @@
+{
+  "name": "pk-fk-discovery",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.26.2",
+  "description": "Enterprise-grade Adapter Studio + Registry + Engine Admin application",
+  "scripts": {
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.1.0",
+    "prettier": "^3.4.0",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=10.26.2"
+  }
+}
+

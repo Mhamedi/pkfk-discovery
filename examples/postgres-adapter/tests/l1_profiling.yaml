@@ -1,0 +1,15 @@
+name: L1 Profiling
+level: L1
+requires: L0
+tests:
+  - name: profile_column_sample
+    sql_template: profile_column_sample.sql
+    expected:
+      columns:
+        - total_rows
+        - distinct_values
+        - null_count
+      metrics:
+        null_ratio_max: 0.5
+        distinct_ratio_min: 0.01
+

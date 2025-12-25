@@ -1,0 +1,42 @@
+mappings:
+  - db_type: "VARCHAR"
+    canonical_type: "string"
+    normalization:
+      max_length: true
+      nullable: true
+  
+  - db_type: "TEXT"
+    canonical_type: "string"
+    normalization:
+      nullable: true
+  
+  - db_type: "INTEGER"
+    canonical_type: "integer"
+    normalization:
+      signed: true
+      nullable: true
+  
+  - db_type: "BIGINT"
+    canonical_type: "integer"
+    normalization:
+      signed: true
+      nullable: true
+  
+  - db_type: "NUMERIC"
+    canonical_type: "decimal"
+    normalization:
+      precision: true
+      scale: true
+      nullable: true
+  
+  - db_type: "TIMESTAMP"
+    canonical_type: "timestamp"
+    normalization:
+      timezone: true
+      nullable: true
+  
+  - db_type: "BOOLEAN"
+    canonical_type: "boolean"
+    normalization:
+      nullable: true
+

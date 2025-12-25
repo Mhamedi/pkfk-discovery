@@ -1,0 +1,13 @@
+.PHONY: deploy
+
+# Main deployment target - orchestrates docker-up with error handling
+deploy: docker-up
+
+# This Makefile wraps the main Makefile's docker-up target
+# Additional deployment-specific targets can be added here
+
+docker-up:
+	@echo "Starting deployment process..."
+	@$(MAKE) -f Makefile docker-up
+	@echo "Deployment complete!"
+

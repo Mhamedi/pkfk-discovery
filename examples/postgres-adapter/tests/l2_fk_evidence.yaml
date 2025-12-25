@@ -1,0 +1,13 @@
+name: L2 FK Evidence
+level: L2
+requires: L1
+tests:
+  - name: fk_inclusion_sample
+    sql_template: fk_inclusion_sample.sql
+    expected:
+      columns:
+        - total_rows
+        - matching_rows
+      metrics:
+        inclusion_ratio_min: 0.95
+

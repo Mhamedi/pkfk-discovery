@@ -1,0 +1,177 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      
+      - name: Enable Corepack
+        run: corepack enable
+      
+      - name: Install pnpm
+        run: corepack prepare pnpm@10.26.2 --activate
+      
+      - name: Install Go linter
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      
+      - name: Lint Go code
+        run: |
+          cd apps/api && golangci-lint run ./...
+          cd ../worker && golangci-lint run ./...
+          cd ../../tools/port-allocator && golangci-lint run ./...
+      
+      - name: Install frontend dependencies
+        run: pnpm install
+      
+      - name: Lint frontend code
+        run: pnpm lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      
+      - name: Enable Corepack
+        run: corepack enable
+      
+      - name: Install pnpm
+        run: corepack prepare pnpm@10.26.2 --activate
+      
+      - name: Run Go tests
+        run: |
+          cd apps/api && go test ./...
+          cd ../worker && go test ./...
+          cd ../../tools/port-allocator && go test ./...
+      
+      - name: Install frontend dependencies
+        run: pnpm install
+      
+      - name: Run frontend tests
+        run: pnpm test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      
+      - name: Enable Corepack
+        run: corepack enable
+      
+      - name: Install pnpm
+        run: corepack prepare pnpm@10.26.2 --activate
+      
+      - name: Build Go binaries
+        run: |
+          cd apps/api && go build -o bin/api ./cmd/api
+          cd ../worker && go build -o bin/worker ./cmd/worker
+          cd ../../tools/port-allocator && go build -o ../../bin/port-allocator .
+      
+      - name: Install frontend dependencies
+        run: pnpm install
+      
+      - name: Build frontend
+        run: cd apps/web && pnpm build
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/api/Dockerfile
+          push: false
+          tags: pkfk-api:test
+      
+      - name: Build Worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/worker/Dockerfile
+          push: false
+          tags: pkfk-worker:test
+      
+      - name: Build Web image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/web/Dockerfile
+          push: false
+          tags: pkfk-web:test
+
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      
+      - name: Enable Corepack
+        run: corepack enable
+      
+      - name: Install pnpm
+        run: corepack prepare pnpm@10.26.2 --activate
+      
+      - name: Audit Go dependencies
+        run: |
+          cd apps/api && go list -json -m all | go run golang.org/x/vuln/cmd/govulncheck@latest -
+          cd ../worker && go list -json -m all | go run golang.org/x/vuln/cmd/govulncheck@latest -
+      
+      - name: Audit frontend dependencies
+        run: pnpm audit --audit-level=moderate
+

@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pkfk-postgres
+    environment:
+      POSTGRES_USER: pkfk
+      POSTGRES_PASSWORD: pkfk_dev_password
+      POSTGRES_DB: pkfk_discovery
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pkfk"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pkfk-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: pkfk-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - pkfk-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: pkfk-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - pkfk-network
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    container_name: pkfk-api
+    environment:
+      DATABASE_URL: postgres://pkfk:pkfk_dev_password@postgres:5432/pkfk_discovery?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_USE_SSL: "false"
+      JWT_SECRET: dev_jwt_secret_change_in_production
+      ENCRYPTION_KEY: dev_encryption_key_32_bytes_long_change_in_production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - pkfk-network
+
+  worker:
+    build:
+      context: ..
+      dockerfile: apps/worker/Dockerfile
+    container_name: pkfk-worker
+    environment:
+      DATABASE_URL: postgres://pkfk:pkfk_dev_password@postgres:5432/pkfk_discovery?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_USE_SSL: "false"
+      ENCRYPTION_KEY: dev_encryption_key_32_bytes_long_change_in_production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - pkfk-network
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    container_name: pkfk-web
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    depends_on:
+      - api
+    networks:
+      - pkfk-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  pkfk-network:
+    driver: bridge
+

@@ -1,0 +1,12 @@
+id: postgres-adapter
+name: PostgreSQL Adapter
+vendor: pkfk-discovery
+db_family: postgresql
+supported_db_versions:
+  - "12+"
+adapter_schema_version: "1.0"
+engine_compat: ">=1.0"
+maturity_level: L2
+created_at: "2025-01-01T00:00:00Z"
+updated_at: "2025-01-01T00:00:00Z"
+

@@ -1,0 +1,8 @@
+features:
+  explain_analyze: true
+  sampling: true
+  regex_functions: true
+  hash_functions: true
+  random_functions: true
+  try_cast: true
+
