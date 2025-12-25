@@ -1,24 +1,20 @@
 package postgres
-
 import (
 	"context"
 	"database/sql"
+	""
 	"fmt"
-
+	"time"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-
-	"github.com/pkfk-discovery/api/internal/domain"
+	"github.com/pkfk-discovery/worker/internal/domain"
 )
-
 type AuditLogRepository struct {
 	db *pgxpool.Pool
 }
-
 func NewAuditLogRepository(db *pgxpool.Pool) *AuditLogRepository {
 	return &AuditLogRepository{db: db}
 }
-
 func (r *AuditLogRepository) Create(log *domain.AuditLog) error {
 	query := `
 		INSERT INTO audit_logs (id, user_id, action, resource_type, resource_id, details_json, ip_address, created_at)
@@ -29,7 +25,6 @@ func (r *AuditLogRepository) Create(log *domain.AuditLog) error {
 		log.ResourceID, log.Details, log.IPAddress, log.CreatedAt)
 	return err
 }
-
 func (r *AuditLogRepository) GetByID(id uuid.UUID) (*domain.AuditLog, error) {
 	query := `
 		SELECT id, user_id, action, resource_type, resource_id, details_json, ip_address, created_at
@@ -60,7 +55,6 @@ func (r *AuditLogRepository) GetByID(id uuid.UUID) (*domain.AuditLog, error) {
 	}
 	return &log, nil
 }
-
 func (r *AuditLogRepository) List(filters domain.AuditLogFilters, limit, offset int) ([]*domain.AuditLog, error) {
 	query := `
 		SELECT id, user_id, action, resource_type, resource_id, details_json, ip_address, created_at
@@ -69,7 +63,6 @@ func (r *AuditLogRepository) List(filters domain.AuditLogFilters, limit, offset 
 	`
 	args := []interface{}{}
 	argPos := 1
-
 	if filters.UserID != nil {
 		query += ` AND user_id = $` + fmt.Sprintf("%d", argPos)
 		args = append(args, *filters.UserID)
@@ -95,16 +88,13 @@ func (r *AuditLogRepository) List(filters domain.AuditLogFilters, limit, offset 
 		args = append(args, *filters.EndDate)
 		argPos++
 	}
-
 	query += ` ORDER BY created_at DESC LIMIT $` + fmt.Sprintf("%d", argPos) + ` OFFSET $` + fmt.Sprintf("%d", argPos+1)
 	args = append(args, limit, offset)
-
 	rows, err := r.db.Query(context.Background(), query, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
 	var logs []*domain.AuditLog
 	for rows.Next() {
 		var log domain.AuditLog
@@ -130,7 +120,5 @@ func (r *AuditLogRepository) List(filters domain.AuditLogFilters, limit, offset 
 		}
 		logs = append(logs, &log)
 	}
-
 	return logs, rows.Err()
 }
-

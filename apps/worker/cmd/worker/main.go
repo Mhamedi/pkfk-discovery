@@ -48,13 +48,13 @@ func main() {
 
 func loadConfig() *jobs.Config {
 	return &jobs.Config{
-		DatabaseURL:   getEnv("DATABASE_URL", ""),
-		RedisURL:      getEnv("REDIS_URL", ""),
-		MinIOEndpoint: getEnv("MINIO_ENDPOINT", ""),
+		DatabaseURL:    getEnv("DATABASE_URL", ""),
+		RedisURL:       getEnv("REDIS_URL", ""),
+		MinIOEndpoint:  getEnv("MINIO_ENDPOINT", ""),
 		MinIOAccessKey: getEnv("MINIO_ACCESS_KEY", ""),
 		MinIOSecretKey: getEnv("MINIO_SECRET_KEY", ""),
-		MinIOUseSSL:   getEnv("MINIO_USE_SSL", "false") == "true",
-		EncryptionKey: getEnv("ENCRYPTION_KEY", ""),
+		MinIOUseSSL:    getEnv("MINIO_USE_SSL", "false") == "true",
+		EncryptionKey:  getEnv("ENCRYPTION_KEY", ""),
 	}
 }
 
@@ -64,4 +64,3 @@ func getEnv(key, defaultValue string) string {
 	}
 	return defaultValue
 }
-

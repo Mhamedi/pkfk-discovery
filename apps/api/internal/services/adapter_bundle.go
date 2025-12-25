@@ -10,7 +10,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
-	"strings"
 
 	"github.com/pkfk-discovery/api/internal/integrations/minio"
 )

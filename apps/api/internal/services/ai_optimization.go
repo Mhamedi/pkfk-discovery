@@ -171,8 +171,8 @@ func (s *AIOptimizationService) isValidDiff(diff string) bool {
 	return false
 }
 
-func (s *AIOptimizationService) hashString(s string) string {
-	hash := sha256.Sum256([]byte(s))
+func (s *AIOptimizationService) hashString(str string) string {
+	hash := sha256.Sum256([]byte(str))
 	return hex.EncodeToString(hash[:])
 }
 

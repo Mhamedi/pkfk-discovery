@@ -89,7 +89,7 @@ func (s *ConnectionService) List(limit, offset int) ([]*domain.Connection, error
 }
 
 func (s *ConnectionService) TestConnection(id uuid.UUID) error {
-	conn, err := s.GetByID(id)
+	_, err := s.GetByID(id)
 	if err != nil {
 		return err
 	}
@@ -145,8 +145,8 @@ func (s *ConnectionService) decrypt(ciphertext string) (string, error) {
 		return "", fmt.Errorf("ciphertext too short")
 	}
 
-	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	nonce, ciphertextBytes := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertextBytes, nil)
 	if err != nil {
 		return "", err
 	}

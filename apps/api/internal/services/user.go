@@ -9,9 +9,7 @@ import (
 	"github.com/pkfk-discovery/api/internal/domain"
 )
 
-var (
-	ErrUserNotFound = errors.New("user not found")
-)
+// ErrUserNotFound is defined in auth.go to avoid duplication
 
 type UserService struct {
 	userRepo domain.UserRepository

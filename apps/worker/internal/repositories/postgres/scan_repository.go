@@ -1,23 +1,18 @@
 package postgres
-
 import (
 	"context"
+	""
 	"time"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-
-	"github.com/pkfk-discovery/api/internal/domain"
+	"github.com/pkfk-discovery/worker/internal/domain"
 )
-
 type ScanRepository struct {
 	db *pgxpool.Pool
 }
-
 func NewScanRepository(db *pgxpool.Pool) *ScanRepository {
 	return &ScanRepository{db: db}
 }
-
 func (r *ScanRepository) Create(scan *domain.Scan) error {
 	query := `
 		INSERT INTO scans (id, connection_id, adapter_id, status, policy_json, results_json, created_by, created_at, updated_at)
@@ -29,7 +24,6 @@ func (r *ScanRepository) Create(scan *domain.Scan) error {
 		scan.Policy, scan.Results, scan.CreatedBy, now, now)
 	return err
 }
-
 func (r *ScanRepository) GetByID(id uuid.UUID) (*domain.Scan, error) {
 	query := `
 		SELECT id, connection_id, adapter_id, status, policy_json, results_json, created_by, created_at, updated_at
@@ -46,7 +40,6 @@ func (r *ScanRepository) GetByID(id uuid.UUID) (*domain.Scan, error) {
 	}
 	return &scan, nil
 }
-
 func (r *ScanRepository) Update(scan *domain.Scan) error {
 	query := `
 		UPDATE scans
@@ -57,13 +50,11 @@ func (r *ScanRepository) Update(scan *domain.Scan) error {
 		scan.ID, scan.Status, scan.Policy, scan.Results, scan.UpdatedAt)
 	return err
 }
-
 func (r *ScanRepository) Delete(id uuid.UUID) error {
 	query := `DELETE FROM scans WHERE id = $1`
 	_, err := r.db.Exec(context.Background(), query, id)
 	return err
 }
-
 func (r *ScanRepository) List(limit, offset int) ([]*domain.Scan, error) {
 	query := `
 		SELECT id, connection_id, adapter_id, status, policy_json, results_json, created_by, created_at, updated_at
@@ -76,7 +67,6 @@ func (r *ScanRepository) List(limit, offset int) ([]*domain.Scan, error) {
 		return nil, err
 	}
 	defer rows.Close()
-
 	var scans []*domain.Scan
 	for rows.Next() {
 		var scan domain.Scan
@@ -88,7 +78,5 @@ func (r *ScanRepository) List(limit, offset int) ([]*domain.Scan, error) {
 		}
 		scans = append(scans, &scan)
 	}
-
 	return scans, rows.Err()
 }
-

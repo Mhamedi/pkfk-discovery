@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/pkfk-discovery/api/internal/domain"

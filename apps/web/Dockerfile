@@ -7,16 +7,15 @@ FROM base AS deps
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY apps/web ./
-COPY package.json pnpm-lock.yaml* ./
 
-RUN pnpm build
+RUN pnpm install --frozen-lockfile=false && pnpm build
 
 FROM base AS runner
 WORKDIR /app

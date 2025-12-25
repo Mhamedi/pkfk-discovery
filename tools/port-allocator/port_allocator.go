@@ -5,8 +5,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 )
 
 type PortAllocator struct {

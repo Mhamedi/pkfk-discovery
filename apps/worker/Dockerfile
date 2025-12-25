@@ -2,11 +2,11 @@ FROM golang:1.25-alpine AS builder
 
 WORKDIR /build
 
-# Copy go mod files
+# Copy worker go mod files
 COPY apps/worker/go.mod apps/worker/go.sum ./
 RUN go mod download
 
-# Copy source code
+# Copy worker source code
 COPY apps/worker/ ./
 
 # Build binary
