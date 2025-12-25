@@ -1,8 +1,10 @@
 package jobs
+
 import (
 	"strings"
 	"time"
 )
+
 var (
 	deniedKeywords = []string{
 		"INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "CREATE",
@@ -10,10 +12,12 @@ var (
 		"MERGE", "VACUUM", "ANALYZE",
 	}
 )
+
 type SQLSafetyChecker struct {
 	maxTimeout time.Duration
 	maxRows    int
 }
+
 func NewSQLSafetyChecker(maxTimeout time.Duration, maxRows int) *SQLSafetyChecker {
 	return &SQLSafetyChecker{
 		maxTimeout: maxTimeout,
@@ -30,7 +34,7 @@ func (c *SQLSafetyChecker) ValidateSQL(sql string, allowExplainAnalyze bool) err
 				continue
 			}
 			return &SQLSafetyError{
-				Reason: "denied_keyword",
+				Reason:  "denied_keyword",
 				Keyword: keyword,
 				Message: "SQL contains denied keyword: " + keyword,
 			}
@@ -72,11 +76,13 @@ func (c *SQLSafetyChecker) EnforceSampleLimit(sql string, sampleMode bool) (stri
 	}
 	return sql, nil
 }
+
 type SQLSafetyError struct {
 	Reason  string
 	Keyword string
 	Message string
 }
+
 func (e *SQLSafetyError) Error() string {
 	return e.Message
 }

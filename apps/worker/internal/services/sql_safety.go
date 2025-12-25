@@ -1,4 +1,5 @@
-package jobs
+package services
+
 import (
 	"strings"
 	"time"

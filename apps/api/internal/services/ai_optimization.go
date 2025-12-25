@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	ErrAIProviderNotFound = errors.New("AI provider not found")
-	ErrInvalidDiffFormat   = errors.New("invalid diff format")
+	// ErrAIProviderNotFound is defined in ai.go
+	ErrInvalidDiffFormat = errors.New("invalid diff format")
 )
 
 type AIOptimizationService struct {
@@ -52,7 +52,7 @@ func (s *AIOptimizationService) Optimize(ctx context.Context, req *OptimizationR
 
 	provider, err := s.aiProviderRepo.GetByID(providerID)
 	if err != nil {
-		return nil, ErrAIProviderNotFound
+		return nil, ErrAIProviderNotFound // Defined in ai.go
 	}
 
 	// Validate inputs (strict guardrails)

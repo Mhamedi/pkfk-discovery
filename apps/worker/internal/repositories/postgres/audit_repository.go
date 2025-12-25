@@ -1,12 +1,13 @@
 package postgres
+
 import (
 	"context"
 	"database/sql"
-	""
 	"fmt"
-	"time"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/pkfk-discovery/worker/internal/domain"
 )
 type AuditLogRepository struct {

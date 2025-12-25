@@ -2,10 +2,10 @@ package jobs
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
@@ -15,29 +15,31 @@ import (
 	"github.com/pkfk-discovery/worker/internal/repositories/postgres"
 	"github.com/pkfk-discovery/worker/internal/services"
 )
+
 type Config struct {
-	DatabaseURL   string
-	RedisURL      string
-	MinIOEndpoint string
+	DatabaseURL    string
+	RedisURL       string
+	MinIOEndpoint  string
 	MinIOAccessKey string
 	MinIOSecretKey string
-	MinIOUseSSL   bool
-	EncryptionKey string
+	MinIOUseSSL    bool
+	EncryptionKey  string
 }
 type Worker struct {
-	config        *Config
-	client        *asynq.Client
-	server        *asynq.Server
-	mux           *asynq.ServeMux
-	logger        *logrus.Logger
-	db            *pgxpool.Pool
-	minioClient   *minio.Client
-	scanPipeline  *ScanPipeline
-	scanRepo      domain.ScanRepository
-	adapterRepo   domain.AdapterRepository
+	config         *Config
+	client         *asynq.Client
+	server         *asynq.Server
+	mux            *asynq.ServeMux
+	logger         *logrus.Logger
+	db             *pgxpool.Pool
+	minioClient    *minio.Client
+	scanPipeline   *ScanPipeline
+	scanRepo       domain.ScanRepository
+	adapterRepo    domain.AdapterRepository
 	connectionRepo domain.ConnectionRepository
-	sqlSafety     *services.SQLSafety
+	sqlSafety      *services.SQLSafetyChecker
 }
+
 func NewWorker(cfg *Config) (*Worker, error) {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
@@ -57,7 +59,7 @@ func NewWorker(cfg *Config) (*Worker, error) {
 		return nil, fmt.Errorf("failed to initialize MinIO client: %w", err)
 	}
 	// Initialize SQL safety
-	sqlSafety := services.NewSQLSafety()
+	sqlSafety := services.NewSQLSafetyChecker(5*time.Minute, 10000)
 	// Initialize repositories
 	scanRepo := postgres.NewScanRepository(db)
 	adapterRepo := postgres.NewAdapterRepository(db)
@@ -73,23 +75,23 @@ func NewWorker(cfg *Config) (*Worker, error) {
 		Queues: map[string]int{
 			"critical": 6,
 			"default":  3,
-			"low":       1,
+			"low":      1,
 		},
 	})
 	mux := asynq.NewServeMux()
 	w := &Worker{
-		config:        cfg,
-		client:        client,
-		server:        server,
-		mux:           mux,
-		logger:        logger,
-		db:            db,
-		minioClient:   minioClient,
-		scanPipeline:  scanPipeline,
-		scanRepo:      scanRepo,
-		adapterRepo:   adapterRepo,
+		config:         cfg,
+		client:         client,
+		server:         server,
+		mux:            mux,
+		logger:         logger,
+		db:             db,
+		minioClient:    minioClient,
+		scanPipeline:   scanPipeline,
+		scanRepo:       scanRepo,
+		adapterRepo:    adapterRepo,
 		connectionRepo: connectionRepo,
-		sqlSafety:     sqlSafety,
+		sqlSafety:      sqlSafety,
 	}
 	w.registerHandlers()
 	return w, nil

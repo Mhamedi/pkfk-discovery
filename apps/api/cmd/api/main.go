@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pkfk-discovery/api/internal/transport/http"
+	httptransport "github.com/pkfk-discovery/api/internal/transport/http"
 )
 
 func main() {
@@ -18,7 +17,7 @@ func main() {
 	cfg := loadConfig()
 
 	// Initialize server
-	server, err := http.NewServer(cfg)
+	server, err := httptransport.NewServer(cfg)
 	if err != nil {
 		log.Fatalf("Failed to initialize server: %v", err)
 	}
@@ -48,8 +47,8 @@ func main() {
 	log.Println("Server exited")
 }
 
-func loadConfig() *http.Config {
-	return &http.Config{
+func loadConfig() *httptransport.Config {
+	return &httptransport.Config{
 		Addr:         getEnv("ADDR", ":8080"),
 		DatabaseURL:   getEnv("DATABASE_URL", ""),
 		RedisURL:     getEnv("REDIS_URL", ""),

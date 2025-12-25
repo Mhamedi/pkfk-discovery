@@ -1,38 +1,40 @@
 package jobs
+
 import (
 	"context"
-	""
 	"fmt"
+
 	"github.com/google/uuid"
-	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
+
 	"github.com/pkfk-discovery/worker/internal/domain"
 	"github.com/pkfk-discovery/worker/internal/integrations/minio"
 	"github.com/pkfk-discovery/worker/internal/services"
 )
+
 type ScanPipeline struct {
-	db           *pgxpool.Pool
-	minioClient  *minio.Client
-	logger       *logrus.Logger
-	sqlSafety    *services.SQLSafety
+	db          *pgxpool.Pool
+	minioClient *minio.Client
+	logger      *logrus.Logger
+	sqlSafety   *services.SQLSafetyChecker
 }
 type ScanJobPayload struct {
 	ScanID uuid.UUID `json:"scan_id"`
 }
 type ScanResults struct {
-	Metadata      MetadataResults      `json:"metadata"`
-	Profiling     ProfilingResults     `json:"profiling"`
-	Candidates    []Candidate          `json:"candidates"`
-	Evidence      EvidenceResults      `json:"evidence"`
-	Scoring       ScoringResults       `json:"scoring"`
-	Graph         GraphResults         `json:"graph"`
-	Report        ReportResults        `json:"report"`
+	Metadata   MetadataResults  `json:"metadata"`
+	Profiling  ProfilingResults `json:"profiling"`
+	Candidates []Candidate      `json:"candidates"`
+	Evidence   EvidenceResults  `json:"evidence"`
+	Scoring    ScoringResults   `json:"scoring"`
+	Graph      GraphResults     `json:"graph"`
+	Report     ReportResults    `json:"report"`
 }
 type MetadataResults struct {
-	Tables    []TableMetadata    `json:"tables"`
-	Columns   []ColumnMetadata    `json:"columns"`
-	Indexes   []IndexMetadata     `json:"indexes"`
+	Tables      []TableMetadata      `json:"tables"`
+	Columns     []ColumnMetadata     `json:"columns"`
+	Indexes     []IndexMetadata      `json:"indexes"`
 	Constraints []ConstraintMetadata `json:"constraints"`
 }
 type TableMetadata struct {
@@ -41,50 +43,50 @@ type TableMetadata struct {
 	Type   string `json:"type"`
 }
 type ColumnMetadata struct {
-	Schema      string `json:"schema"`
-	Table       string `json:"table"`
-	Name        string `json:"name"`
-	DataType    string `json:"data_type"`
-	IsNullable  bool   `json:"is_nullable"`
-	IsPrimaryKey bool  `json:"is_primary_key"`
+	Schema       string `json:"schema"`
+	Table        string `json:"table"`
+	Name         string `json:"name"`
+	DataType     string `json:"data_type"`
+	IsNullable   bool   `json:"is_nullable"`
+	IsPrimaryKey bool   `json:"is_primary_key"`
 }
 type IndexMetadata struct {
-	Schema    string   `json:"schema"`
-	Table     string   `json:"table"`
-	Name      string   `json:"name"`
-	Columns   []string `json:"columns"`
-	IsUnique  bool     `json:"is_unique"`
+	Schema   string   `json:"schema"`
+	Table    string   `json:"table"`
+	Name     string   `json:"name"`
+	Columns  []string `json:"columns"`
+	IsUnique bool     `json:"is_unique"`
 }
 type ConstraintMetadata struct {
-	Schema      string   `json:"schema"`
-	Table       string   `json:"table"`
-	Name        string   `json:"name"`
-	Type        string   `json:"type"` // PRIMARY_KEY, FOREIGN_KEY, UNIQUE, CHECK
-	Columns     []string `json:"columns"`
-	References  *ReferenceMetadata `json:"references,omitempty"`
+	Schema     string             `json:"schema"`
+	Table      string             `json:"table"`
+	Name       string             `json:"name"`
+	Type       string             `json:"type"` // PRIMARY_KEY, FOREIGN_KEY, UNIQUE, CHECK
+	Columns    []string           `json:"columns"`
+	References *ReferenceMetadata `json:"references,omitempty"`
 }
 type ReferenceMetadata struct {
-	Schema string   `json:"schema"`
-	Table  string   `json:"table"`
+	Schema  string   `json:"schema"`
+	Table   string   `json:"table"`
 	Columns []string `json:"columns"`
 }
 type ProfilingResults struct {
 	ColumnStats map[string]ColumnStats `json:"column_stats"`
 }
 type ColumnStats struct {
-	DistinctCount int64   `json:"distinct_count"`
-	NullCount     int64   `json:"null_count"`
+	DistinctCount int64    `json:"distinct_count"`
+	NullCount     int64    `json:"null_count"`
 	SampleValues  []string `json:"sample_values,omitempty"`
 }
 type Candidate struct {
-	FromSchema   string   `json:"from_schema"`
-	FromTable    string   `json:"from_table"`
-	FromColumns  []string `json:"from_columns"`
-	ToSchema     string   `json:"to_schema"`
-	ToTable      string   `json:"to_table"`
-	ToColumns    []string `json:"to_columns"`
-	Confidence   float64  `json:"confidence"`
-	Reason       string   `json:"reason"`
+	FromSchema  string   `json:"from_schema"`
+	FromTable   string   `json:"from_table"`
+	FromColumns []string `json:"from_columns"`
+	ToSchema    string   `json:"to_schema"`
+	ToTable     string   `json:"to_table"`
+	ToColumns   []string `json:"to_columns"`
+	Confidence  float64  `json:"confidence"`
+	Reason      string   `json:"reason"`
 }
 type EvidenceResults struct {
 	Evidence map[string][]EvidenceItem `json:"evidence"`
@@ -102,31 +104,32 @@ type GraphResults struct {
 	Edges []GraphEdge `json:"edges"`
 }
 type GraphNode struct {
-	ID       string `json:"id"`
-	Type     string `json:"type"` // TABLE, COLUMN
-	Schema   string `json:"schema"`
-	Table    string `json:"table"`
-	Column   string `json:"column,omitempty"`
+	ID     string `json:"id"`
+	Type   string `json:"type"` // TABLE, COLUMN
+	Schema string `json:"schema"`
+	Table  string `json:"table"`
+	Column string `json:"column,omitempty"`
 }
 type GraphEdge struct {
-	From   string  `json:"from"`
-	To     string  `json:"to"`
-	Type   string  `json:"type"` // PK_FK, FK_FK
+	From       string  `json:"from"`
+	To         string  `json:"to"`
+	Type       string  `json:"type"` // PK_FK, FK_FK
 	Confidence float64 `json:"confidence"`
 }
 type ReportResults struct {
-	Summary      ReportSummary `json:"summary"`
-	Recommendations []string   `json:"recommendations"`
+	Summary         ReportSummary `json:"summary"`
+	Recommendations []string      `json:"recommendations"`
 }
 type ReportSummary struct {
-	TotalTables      int `json:"total_tables"`
-	TotalColumns     int `json:"total_columns"`
+	TotalTables       int `json:"total_tables"`
+	TotalColumns      int `json:"total_columns"`
 	PKFKRelationships int `json:"pkfk_relationships"`
-	HighConfidence   int `json:"high_confidence"`
-	MediumConfidence int `json:"medium_confidence"`
-	LowConfidence    int `json:"low_confidence"`
+	HighConfidence    int `json:"high_confidence"`
+	MediumConfidence  int `json:"medium_confidence"`
+	LowConfidence     int `json:"low_confidence"`
 }
-func NewScanPipeline(db *pgxpool.Pool, minioClient *minio.Client, logger *logrus.Logger, sqlSafety *services.SQLSafety) *ScanPipeline {
+
+func NewScanPipeline(db *pgxpool.Pool, minioClient *minio.Client, logger *logrus.Logger, sqlSafety *services.SQLSafetyChecker) *ScanPipeline {
 	return &ScanPipeline{
 		db:          db,
 		minioClient: minioClient,
@@ -304,8 +307,8 @@ func (p *ScanPipeline) reconcileGraph(metadata *MetadataResults, candidates []Ca
 func (p *ScanPipeline) generateReport(metadata *MetadataResults, graph *GraphResults, scoring *ScoringResults) *ReportResults {
 	report := &ReportResults{
 		Summary: ReportSummary{
-			TotalTables: len(metadata.Tables),
-			TotalColumns: len(metadata.Columns),
+			TotalTables:       len(metadata.Tables),
+			TotalColumns:      len(metadata.Columns),
 			PKFKRelationships: len(graph.Edges),
 		},
 		Recommendations: []string{},

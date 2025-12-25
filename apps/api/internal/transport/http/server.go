@@ -11,10 +11,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
 
 	mw "github.com/pkfk-discovery/api/internal/middleware"
+	"github.com/pkfk-discovery/api/internal/domain"
 	"github.com/pkfk-discovery/api/internal/integrations/minio"
 	"github.com/pkfk-discovery/api/internal/repositories/postgres"
 	"github.com/pkfk-discovery/api/internal/services"
@@ -507,7 +509,7 @@ func (s *Server) handleUpdateDraft(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleProbeDraft(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, err := uuid.Parse(idStr)
+	_, err := uuid.Parse(idStr)
 	if err != nil {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{"error": "Invalid draft ID"})
@@ -580,8 +582,9 @@ func (s *Server) handleOptimizeDraft(w http.ResponseWriter, r *http.Request) {
 
 	userID, _ := mw.GetUserID(r.Context())
 
+	aiProviderRepo := postgres.NewAIProviderRepository(s.db)
 	aiInteractionRepo := postgres.NewAIInteractionRepository(s.db)
-	optimizationService := services.NewAIOptimizationService(s.aiProviderRepo, aiInteractionRepo)
+	optimizationService := services.NewAIOptimizationService(aiProviderRepo, aiInteractionRepo)
 	optReq := &services.OptimizationRequest{
 		DraftID:     id.String(),
 		SQLTemplate: req.SQLTemplate,

@@ -1,8 +1,10 @@
 package postgres
+
 import (
 	"context"
-	""
+	"encoding/json"
 	"time"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 type SettingsRepository struct {
