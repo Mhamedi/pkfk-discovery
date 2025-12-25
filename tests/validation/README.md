@@ -73,6 +73,64 @@ psql -h localhost -p 5433 -U test_user -d test_db
 # (Use your adapter's test connection endpoint)
 ```
 
+## Complex Test Data Generator
+
+A comprehensive test data generator script (`generate_complex_test_data.sql`) creates a challenging dataset with ~424 records across 20 tables designed to test edge cases in PK/FK discovery:
+
+### Features
+
+- **Composite Primary Keys**: Multi-column PKs (e.g., `product_variants(product_id, variant_code)`)
+- **Composite Foreign Keys**: Multi-column FKs referencing composite PKs
+- **Self-Referencing Relationships**: Hierarchical structures (locations, departments, employees, categories)
+- **Multi-Level FK Chains**: Complex relationship chains (orders -> customers -> addresses)
+- **Nullable Foreign Keys**: Orphaned records and missing relationships
+- **Circular Dependencies**: Indirect circular references through multiple tables
+- **Various Data Types**: Tests with different column types and constraints
+
+### Tables Created
+
+1. **locations** - Self-referencing location hierarchy
+2. **warehouses** - Warehouse master
+3. **departments** - Self-referencing department hierarchy
+4. **employees** - Self-referencing manager hierarchy
+5. **suppliers** - Supplier master
+6. **categories** - Self-referencing category hierarchy
+7. **products** - Product master
+8. **product_variants** - Composite PK (product_id, variant_code)
+9. **customers** - Customer master
+10. **customer_addresses** - Composite PK (customer_id, address_type)
+11. **orders** - Orders with composite FK to addresses
+12. **order_items** - Composite FK to product_variants
+13. **supplier_products** - Many-to-many with composite key
+14. **reviews** - Product reviews
+15. **shipments** - Shipment tracking
+16. **shipment_items** - Composite FK to order_items
+17. **inventory** - Composite PK (warehouse_id, product_id, variant_code)
+18. **price_history** - Price change tracking
+19. **promotions** - Promotion master
+20. **promotion_products** - Many-to-many with composite key
+
+### Usage
+
+```bash
+# Generate complex test data in the main database
+./generate_test_data.sh
+
+# Or manually execute the SQL script
+psql -h localhost -p 5432 -U pkfk -d pkfk_discovery -f generate_complex_test_data.sql
+```
+
+### Expected Discovery Challenges
+
+This dataset tests your PK/FK discovery solution with:
+
+- **Composite Key Relationships**: Discovering FKs that reference multi-column PKs
+- **Self-Referencing FKs**: Identifying hierarchical relationships
+- **Nullable FKs**: Handling cases where FK columns can be NULL
+- **Multi-Table Chains**: Following relationships through multiple tables
+- **Orphaned Records**: Records with NULL FKs that don't reference valid parent records
+- **Indirect Circular Dependencies**: Circular references through intermediate tables
+
 ## Test Scenarios
 
 The test suite includes:
