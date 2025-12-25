@@ -10,34 +10,33 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}Generating complex test data for PK/FK discovery...${NC}"
 
-# Check if PostgreSQL is running
-if ! docker ps | grep -q pkfk-postgres; then
-    echo "Error: PostgreSQL container (pkfk-postgres) is not running."
-    echo "Please start it with: docker compose -f deploy/docker-compose.yml up -d postgres"
-    exit 1
-fi
-
-# Database connection details
-DB_HOST="localhost"
-DB_PORT="5432"
+# Container name from docker-compose
+CONTAINER_NAME="pkfk-discover-postgres"
 DB_NAME="pkfk_discovery"
 DB_USER="pkfk"
 DB_PASSWORD="pkfk_dev_password"
 
+# Check if PostgreSQL container is running
+if ! docker ps | grep -q "$CONTAINER_NAME"; then
+    echo "Error: PostgreSQL container ($CONTAINER_NAME) is not running."
+    echo "Please start it with: docker compose -f deploy/docker-compose.yml up -d postgres"
+    exit 1
+fi
+
 # Wait for PostgreSQL to be ready
 echo -e "${BLUE}Waiting for PostgreSQL to be ready...${NC}"
-until PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c '\q' 2>/dev/null; do
+until docker exec "$CONTAINER_NAME" pg_isready -U "$DB_USER" >/dev/null 2>&1; do
     echo "Waiting for PostgreSQL..."
     sleep 1
 done
 
-# Execute the SQL script
+# Execute the SQL script directly in the container
 echo -e "${BLUE}Executing test data generation script...${NC}"
-PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$(dirname "$0")/generate_complex_test_data.sql"
+docker exec -i "$CONTAINER_NAME" psql -U "$DB_USER" -d "$DB_NAME" < "$(dirname "$0")/generate_complex_test_data.sql"
 
 # Count records
 echo -e "${BLUE}Counting generated records...${NC}"
-PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<EOF
+docker exec "$CONTAINER_NAME" psql -U "$DB_USER" -d "$DB_NAME" <<EOF
 SELECT 
     'locations' as table_name, COUNT(*) as record_count FROM locations
 UNION ALL SELECT 'warehouses', COUNT(*) FROM warehouses
